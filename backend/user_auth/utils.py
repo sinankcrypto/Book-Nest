@@ -12,7 +12,7 @@ Thank you for choosing BookNest
 
 For your security:
 • Do not share this OTP with anyone
-• Trip Tailor staff will never ask for your OTP or password
+• BookNest staff will never ask for your OTP or password
 
 If you did not request this, please ignore this email.
 

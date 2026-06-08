@@ -15,7 +15,8 @@ class Book(models.Model):
     publication_date = models.DateField()
     description = models.TextField(blank=True, null=True)
 
-    pdf_file = models.URLField()
+    pdf_file = models.FileField(upload_to="books/pdfs/")
+    cover_image = models.ImageField(upload_to="books/covers", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
