@@ -50,9 +50,15 @@ class ReadingListBook(models.Model):
     class Meta:
         ordering = ["position"]
 
-        unique_together = [
-            ("reading_list", "book"),
-            ("reading_list", "position")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["reading_list", "book"],
+                name="unique_book_per_reading_list"
+            ),
+            models.UniqueConstraint(
+                fields=["reading_list", "position"],
+                name="unique_position_per_reading_list"
+            ),
         ]
 
     def __str__(self):

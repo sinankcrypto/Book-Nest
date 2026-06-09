@@ -6,3 +6,4 @@ class IsOwnerOrReadOnly(BasePermission):
             return True
         
         return obj.owner == request.user
+    
