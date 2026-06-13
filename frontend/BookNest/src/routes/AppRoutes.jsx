@@ -6,10 +6,12 @@ import {
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import VerifyOTP from "../pages/auth/VerifyOTP";
+import Home from "../pages/Home"
+import Books from "../pages/books/Books";
 
-import Home from "../pages/Home";
 
 import ProtectedRoute from "./ProtectedRoute";
+import MainLayout from "../layouts/MainLayout";
 
 const AppRoutes = () => {
   return (
@@ -33,7 +35,19 @@ const AppRoutes = () => {
         path="/"
         element={
           <ProtectedRoute>
-            <Home />
+            <MainLayout>
+              <Home />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/books"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Books />
+            </MainLayout>
           </ProtectedRoute>
         }
       />

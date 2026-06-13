@@ -6,12 +6,29 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const skipRefreshUrls = [
+  "/auth/login/",
+  "/auth/register/",
+  "/auth/profile/",
+  "/auth/refresh/",
+  "/auth/verify-otp/",
+  "/auth/resend-otp/",
+];
+
 api.interceptors.response.use(
   (response) => response,
 
   async (error) => {
     const originalRequest =
       error.config;
+
+    if (
+      skipRefreshUrls.some(url =>
+        originalRequest.url?.includes(url)
+      )
+    ) {
+      return Promise.reject(error);
+    }
 
     if (
       error.response?.status ===
@@ -32,9 +49,8 @@ api.interceptors.response.use(
         return api(
           originalRequest
         );
-      } catch {
-        window.location.href =
-          "/login";
+      } catch (err) {
+        return Promise.reject(err);
       }
     }
 

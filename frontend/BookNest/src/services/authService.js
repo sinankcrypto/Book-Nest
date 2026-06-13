@@ -10,8 +10,8 @@ export const register = async (data) => {
 	return response.data
 };
 
-export const VerifyOTP = async (data) => {
-	const response = await api.post("/auth/verify-otp", data);
+export const verifyOTP = async (data) => {
+	const response = await api.post("/auth/verify-otp/", data);
 	return response.data;
 };
 
