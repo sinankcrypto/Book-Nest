@@ -4,8 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import AuthLayout from "../../layouts/AuthLayout";
-import AuthInput from "../../components/auth/AuthInput";
-import AuthButton from "../../components/auth/AuthButton";
+import AuthInput from "../../components/auth/authInput";
+import AuthButton from "../../components/auth/authButton";
 
 import { login } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
