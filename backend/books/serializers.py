@@ -39,6 +39,7 @@ class ReadingListBookSerializer(serializers.ModelSerializer):
 
 class ReadingListSerializer(serializers.ModelSerializer):
     books = ReadingListBookSerializer(source="reading_list_books", many=True, read_only=True)
+    book_count = serializers.SerializerMethodField()
 
     class Meta:
         model = ReadingList
@@ -48,7 +49,11 @@ class ReadingListSerializer(serializers.ModelSerializer):
             "name",
             "books",
             "created_at",
+            "book_count"
         ]
+
+    def get_book_count(self, obj):
+        return obj.reading_list_books.count()
 
 class AddBookSerializer(serializers.Serializer):
     book_id = serializers.IntegerField()
