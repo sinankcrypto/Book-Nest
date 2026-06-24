@@ -16,7 +16,7 @@ const Sidebar = () => {
     },
     {
       name: "Upload Book",
-      path: "/books/upload",
+      path: "/upload-book",
     },
   ];
 

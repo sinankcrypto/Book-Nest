@@ -8,10 +8,14 @@ import Register from "../pages/auth/Register";
 import VerifyOTP from "../pages/auth/VerifyOTP";
 import Home from "../pages/Home"
 import Books from "../pages/books/Books";
-
+import UploadBook from "../pages/books/UploadBook";
+import BookDetail from "../pages/books/BookDetail";
+import ReadingLists from "../pages/readingLists/ReadingLists";
+import ReadingListDetail from "../pages/readingLists/ReadingListDetail";
 
 import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "../layouts/MainLayout";
+import { ImageOff } from "lucide-react";
 
 const AppRoutes = () => {
   return (
@@ -48,6 +52,39 @@ const AppRoutes = () => {
             <MainLayout>
               <Books />
             </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/upload-book"
+        element={
+          <ProtectedRoute>
+            <UploadBook />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/books/:id"
+        element={
+          <ProtectedRoute>
+            <BookDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reading-lists"
+        element={
+          <ProtectedRoute>
+            <ReadingLists />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/reading-lists/:id"
+        element={
+          <ProtectedRoute>
+            <ReadingListDetail />
           </ProtectedRoute>
         }
       />
