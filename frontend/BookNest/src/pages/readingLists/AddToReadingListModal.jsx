@@ -41,7 +41,7 @@ const AddToReadingListModal = ({
           const data =
             await getReadingLists();
 
-          setLists(data);
+          setLists(data.results);
         } catch (error) {
           console.log(error);
         }
