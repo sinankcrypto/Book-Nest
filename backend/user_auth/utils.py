@@ -1,6 +1,10 @@
 from django.core.mail import send_mail
 from django.conf import settings
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def send_otp_email(user, otp):
     subject = "Your OTP Verification Code"
     message = f"""
@@ -20,6 +24,10 @@ Best regards,
 The BookNest Team
 support@booknest.com
 """
+    logger.info(f"EMAIL_HOST={settings.EMAIL_HOST}")
+    logger.info(f"EMAIL_PORT={settings.EMAIL_PORT}")
+    logger.info("Attempting to send OTP")
+    
     send_mail(
         subject,
         message,
