@@ -27,7 +27,6 @@ support@booknest.com
     logger.info(f"EMAIL_HOST={settings.EMAIL_HOST}")
     logger.info(f"EMAIL_PORT={settings.EMAIL_PORT}")
     logger.info("Attempting to send OTP")
-    
     send_mail(
         subject,
         message,
