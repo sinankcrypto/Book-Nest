@@ -21,8 +21,35 @@ from .serializers import (
 from .permissions import IsOwnerOrReadOnly
 from .utils import reorder_positons
 
+from drf_spectacular.utils import extend_schema_view
+
+from django.db import transaction
+
+from .docs import (
+    book_list_schema,
+    book_create_schema,
+    book_retrieve_schema,
+    book_update_schema,
+    book_partial_update_schema,
+    book_delete_schema,
+    reading_list_list_schema,
+    reading_list_create_schema,
+    reading_list_retrieve_schema,
+    reading_list_update_schema,
+    reading_list_partial_update_schema,
+    reading_list_delete_schema,
+    reading_list_books_list_schema,
+    reading_list_book_add_schema,
+    reading_list_book_delete_schema,
+    reading_list_book_reorder_schema
+)
+
 # Create your views here.
 
+@extend_schema_view(
+    get=book_list_schema,
+    post=book_create_schema,
+)
 class BookListCreateView(generics.ListCreateAPIView):
     queryset = Book.objects.all()
 
@@ -59,6 +86,12 @@ class BookListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+@extend_schema_view(
+    get=book_retrieve_schema,
+    put=book_update_schema,
+    patch=book_partial_update_schema,
+    delete=book_delete_schema,
+)
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
 
@@ -66,6 +99,10 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
+@extend_schema_view(
+    get=reading_list_list_schema,
+    post=reading_list_create_schema,
+)
 class ReadingListListCreateView(generics.ListCreateAPIView):
     serializer_class = ReadingListSerializer
 
@@ -76,7 +113,13 @@ class ReadingListListCreateView(generics.ListCreateAPIView):
     
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)
-    
+
+@extend_schema_view(
+    get=reading_list_retrieve_schema,
+    put=reading_list_update_schema,
+    patch=reading_list_partial_update_schema,
+    delete=reading_list_delete_schema,
+)    
 class ReadingListDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ReadingListSerializer
 
@@ -84,7 +127,11 @@ class ReadingListDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return ReadingList.objects.filter(owner=self.request.user)
-    
+
+@extend_schema_view(
+    get=reading_list_books_list_schema,
+    post=reading_list_book_add_schema,
+)   
 class ReadingListBooksView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -120,6 +167,9 @@ class ReadingListBooksView(APIView):
 
         return Response(ReadingListBookSerializer(relation).data, status=status.HTTP_201_CREATED)
 
+@extend_schema_view(
+    delete=reading_list_book_delete_schema,
+)
 class ReadingListBookDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -143,3 +193,89 @@ class ReadingListBookDeleteView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+@extend_schema_view(
+    patch=reading_list_book_reorder_schema,
+)
+class ReadingListBookReorderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk, book_id):
+        serializer = ReorderBookSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        relation = get_object_or_404(
+            ReadingListBook,
+            reading_list__id=pk,
+            reading_list__owner=request.user,
+            book_id=book_id
+        )
+
+        reading_list = relation.reading_list
+
+        books = list(
+            ReadingListBook.objects
+            .filter(reading_list=reading_list)
+            .order_by("position")
+        )
+
+        new_position = serializer.validated_data["position"]
+
+        if new_position > len(books):
+            return Response(
+                {
+                    "detail": (
+                        "Position is outside the "
+                        "reading list range."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Remove the book from its current position
+        books.remove(relation)
+
+        # Insert it at the new position
+        books.insert(
+            new_position - 1,
+            relation
+        )
+
+        with transaction.atomic():
+
+            # Temporarily assign unique negative positions
+            for index, book_relation in enumerate(
+                books,
+                start=1
+            ):
+                book_relation.position = -index
+
+            ReadingListBook.objects.bulk_update(
+                books,
+                ["position"]
+            )
+
+            # Assign the final positions
+            for index, book_relation in enumerate(
+                books,
+                start=1
+            ):
+                book_relation.position = index
+
+            ReadingListBook.objects.bulk_update(
+                books,
+                ["position"]
+            )
+
+        return Response(
+            ReadingListBookSerializer(
+                relation
+            ).data,
+            status=status.HTTP_200_OK
+        )
+    

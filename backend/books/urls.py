@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     BookListCreateView, BookDetailView, ReadingListListCreateView, ReadingListDetailView,
-    ReadingListBookDeleteView, ReadingListBooksView
+    ReadingListBookDeleteView, ReadingListBooksView, ReadingListBookReorderView
 )
 
 urlpatterns = [
@@ -15,5 +15,6 @@ urlpatterns = [
         ReadingListBookDeleteView.as_view(),
         name="reading-list-book-delete"
     ),
+    path("reading-lists/<int:pk>/books/<int:book_id>/reorder/", ReadingListBookReorderView.as_view(), name="reading-list-books-reaorder"),
 
 ]
