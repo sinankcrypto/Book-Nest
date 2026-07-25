@@ -247,25 +247,38 @@ class ReadingListBookReorderView(APIView):
         )
 
         with transaction.atomic():
+            #offset to avoid conflict during update due to unique constraint on book and position
+            max_position = max(
+                book.position
+                for book in books
+            )
 
-            # Temporarily assign unique negative positions
-            for index, book_relation in enumerate(
+            temp_offset = (
+                max_position
+                + len(books)
+                + 1
+            )
+
+            # Phase 1: temporary positions
+            for index, book in enumerate(
                 books,
                 start=1
             ):
-                book_relation.position = -index
+                book.position = (
+                    temp_offset + index
+                )
 
             ReadingListBook.objects.bulk_update(
                 books,
                 ["position"]
             )
 
-            # Assign the final positions
-            for index, book_relation in enumerate(
+            # Phase 2: final positions
+            for index, book in enumerate(
                 books,
                 start=1
             ):
-                book_relation.position = index
+                book.position = index
 
             ReadingListBook.objects.bulk_update(
                 books,
