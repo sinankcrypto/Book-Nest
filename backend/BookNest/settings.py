@@ -58,7 +58,9 @@ INSTALLED_APPS = [
 
     'user_auth',
     'books',
-    'anymail'
+    'anymail',
+    "drf_spectacular",
+
 ]
 
 MIDDLEWARE = [
@@ -193,6 +195,10 @@ REST_FRAMEWORK = {
         "rest_framework.pagination.PageNumberPagination",
 
     "PAGE_SIZE": 10,
+    
+    "DEFAULT_SCHEMA_CLASS": (
+        "drf_spectacular.openapi.AutoSchema"
+    ),
 }
 
 SIMPLE_JWT = {
@@ -262,4 +268,14 @@ LOGGING = {
         "level": "DEBUG" if DEBUG else "INFO"
     },
 
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "BookNest API",
+    "DESCRIPTION": (
+        "REST API for BookNest, "
+        "a book management and reading list platform."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }

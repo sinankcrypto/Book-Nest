@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
 class VerifyOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    otp = serializers.CharField(max_length=6)
+    otp = serializers.RegexField(regex=r"^\d{6}$")
 
     def validate(self, attrs):
         email = attrs["email"]
@@ -125,3 +125,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             "username",
             "email"
         ]
+
+class MessageResponseSerializer(
+    serializers.Serializer
+):
+    message = serializers.CharField()
+
+class VerifyOTPResponseSerializer(
+    serializers.Serializer
+):
+    message = serializers.CharField()
+    user = ProfileSerializer()

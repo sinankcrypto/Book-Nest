@@ -16,10 +16,26 @@ from .serializers import (
     VerifyOTPSerializer,
     ResendOTPSerializer,
     LoginSerializer,
-    ProfileSerializer
+    ProfileSerializer,
+    MessageResponseSerializer,
+    VerifyOTPResponseSerializer
 )
 from .models import EmailOTP
 from .utils import send_otp_email
+from .docs import (
+    register_schema,
+    verify_otp_schema,
+    resend_otp_schema,
+    login_schema,
+    refresh_token_schema,
+    logout_schema,
+    profile_schema
+)
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiResponse,
+    OpenApiExample,
+)
 
 # Create your views here.
 
@@ -28,6 +44,7 @@ User = get_user_model()
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
+    @register_schema
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
 
@@ -53,6 +70,7 @@ class RegisterView(APIView):
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 
+    @verify_otp_schema
     def post(self, request):
         serializer = VerifyOTPSerializer(
             data=request.data
@@ -95,6 +113,7 @@ class VerifyOTPView(APIView):
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
 
+    @resend_otp_schema
     def post(self, request):
         serializer = ResendOTPSerializer(data=request.data)
 
@@ -124,6 +143,7 @@ class ResendOTPView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
+    @login_schema
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
@@ -161,6 +181,7 @@ class LoginView(APIView):
 class RefreshTokenView(APIView):
     permission_classes = [AllowAny]
 
+    @refresh_token_schema
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
@@ -196,6 +217,7 @@ class RefreshTokenView(APIView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @logout_schema
     def post(self, request):
         response = Response(
             {"message": "Logged out successfully."}
@@ -209,6 +231,7 @@ class LogoutView(APIView):
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @profile_schema
     def get(self, request):
         serializer = ProfileSerializer(request.user)
 
