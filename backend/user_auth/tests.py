@@ -1,5 +1,7 @@
 from django.test import TestCase
+from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
+from rest_framework.test import APIClient
 from .serializers import RegisterSerializer
 
 class RegisterPasswordValidationTest(TestCase):
@@ -107,5 +109,61 @@ class RegisterUsernameValidationTest(TestCase):
         })
         self.assertFalse(serializer3.is_valid())
         self.assertIn("username", serializer3.errors)
+
+
+class EditProfileAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="original_user",
+            email="original@example.com",
+            password="StrongSecretPass!#2026",
+            is_active=True
+        )
+        self.other_user = User.objects.create_user(
+            username="other_user",
+            email="other@example.com",
+            password="StrongSecretPass!#2026",
+            is_active=True
+        )
+
+    def test_edit_profile_success(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/auth/profile/", {"username": "new_valid_username"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["message"], "Profile updated successfully.")
+        self.assertEqual(response.data["user"]["username"], "new_valid_username")
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "new_valid_username")
+
+    def test_edit_profile_same_username(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/auth/profile/", {"username": "original_user"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_edit_profile_duplicate_username(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/auth/profile/", {"username": "other_user"})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("username", response.data)
+
+    def test_edit_profile_invalid_username(self):
+        self.client.force_authenticate(user=self.user)
+        # Without letters
+        response = self.client.patch("/api/auth/profile/", {"username": "123456"})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("username", response.data)
+
+        # Invalid characters
+        response2 = self.client.patch("/api/auth/profile/", {"username": "user!name"})
+        self.assertEqual(response2.status_code, 400)
+        self.assertIn("username", response2.data)
+
+    def test_edit_profile_unauthenticated(self):
+        response = self.client.patch("/api/auth/profile/", {"username": "new_username"})
+        self.assertEqual(response.status_code, 401)
+
 
 

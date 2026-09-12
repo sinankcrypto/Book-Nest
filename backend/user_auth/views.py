@@ -29,7 +29,8 @@ from .docs import (
     login_schema,
     refresh_token_schema,
     logout_schema,
-    profile_schema
+    profile_schema,
+    profile_update_schema
 )
 from drf_spectacular.utils import (
     extend_schema,
@@ -236,3 +237,25 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(request.user)
 
         return Response(serializer.data)
+
+    @profile_update_schema
+    def patch(self, request):
+        serializer = ProfileSerializer(
+            request.user,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {
+                "message": "Profile updated successfully.",
+                "user": ProfileSerializer(request.user).data
+            },
+            status=status.HTTP_200_OK
+        )
+
+    @profile_update_schema
+    def put(self, request):
+        return self.patch(request)

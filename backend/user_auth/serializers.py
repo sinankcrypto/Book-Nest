@@ -156,6 +156,9 @@ class LoginSerializer(serializers.Serializer):
         return attrs
     
 class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True, max_length=30)
+    email = serializers.EmailField(read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -163,6 +166,39 @@ class ProfileSerializer(serializers.ModelSerializer):
             "username",
             "email"
         ]
+        read_only_fields = ["id", "email"]
+
+    def validate_username(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError(
+                "Username cannot be empty."
+            )
+        if len(value) < 3:
+            raise serializers.ValidationError(
+                "Username must be at least 3 characters long."
+            )
+        if len(value) > 30:
+            raise serializers.ValidationError(
+                "Username cannot exceed 30 characters."
+            )
+        if not re.match(r"^[a-zA-Z0-9_]+$", value):
+            raise serializers.ValidationError(
+                "Username can only contain letters, numbers, and underscores."
+            )
+        if not re.search(r"[a-zA-Z]", value):
+            raise serializers.ValidationError(
+                "Username must contain at least one letter."
+            )
+        query = User.objects.filter(username__iexact=value)
+        if self.instance:
+            query = query.exclude(pk=self.instance.pk)
+        if query.exists():
+            raise serializers.ValidationError(
+                "Username already exists."
+            )
+        return value
+
 
 class MessageResponseSerializer(
     serializers.Serializer

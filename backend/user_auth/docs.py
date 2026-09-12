@@ -391,3 +391,39 @@ profile_schema = extend_schema(
         },
         tags=["Authentication"],
     )
+
+profile_update_schema = extend_schema(
+    summary="Update current user's profile",
+    description=(
+        "Updates the profile (username) of the currently "
+        "authenticated user with validation."
+    ),
+    request=ProfileSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=ProfileSerializer,
+            description="Profile updated successfully.",
+            examples=[
+                OpenApiExample(
+                    "Profile updated",
+                    value={
+                        "message": "Profile updated successfully.",
+                        "user": {
+                            "id": 1,
+                            "username": "new_username",
+                            "email": "user@example.com"
+                        }
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            description="Validation error."
+        ),
+        401: OpenApiResponse(
+            description="Not authenticated."
+        )
+    },
+    tags=["Authentication"],
+)
+
