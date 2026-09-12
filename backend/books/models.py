@@ -17,6 +17,8 @@ class Book(models.Model):
 
     pdf_file = models.FileField(upload_to="books/pdfs/")
     cover_image = models.ImageField(upload_to="books/covers", blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

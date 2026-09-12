@@ -294,15 +294,24 @@ book_partial_update_schema = extend_schema(
 # ============================================================
 
 book_delete_schema = extend_schema(
-    summary="Delete a book",
+    summary="Delete a book (Soft delete)",
     description=(
-        "Deletes an existing book. Only the owner of the "
-        "book can delete it."
+        "Soft deletes an existing book. Only the owner of the "
+        "book can delete it. The book will be marked as deleted "
+        "and excluded from all active listings."
     ),
     request=None,
     responses={
-        204: OpenApiResponse(
+        200: OpenApiResponse(
             description="Book deleted successfully.",
+            examples=[
+                OpenApiExample(
+                    "Book deleted",
+                    value={
+                        "message": "Book deleted successfully."
+                    },
+                )
+            ],
         ),
         401: OpenApiResponse(
             description=(

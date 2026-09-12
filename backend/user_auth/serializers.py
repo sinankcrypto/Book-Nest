@@ -1,4 +1,7 @@
+import re
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from .models import EmailOTP
@@ -6,7 +9,10 @@ from .models import EmailOTP
 User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, max_length=8)
+    password = serializers.CharField(
+        write_only=True,
+        style={"input_type": "password"}
+    )
 
     class Meta:
         model = User
@@ -25,11 +31,43 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
     
     def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError(
+                "Username cannot be empty."
+            )
+        if len(value) < 3:
+            raise serializers.ValidationError(
+                "Username must be at least 3 characters long."
+            )
+        if len(value) > 30:
+            raise serializers.ValidationError(
+                "Username cannot exceed 30 characters."
+            )
+        if not re.match(r"^[a-zA-Z0-9_]+$", value):
+            raise serializers.ValidationError(
+                "Username can only contain letters, numbers, and underscores."
+            )
+        if not re.search(r"[a-zA-Z]", value):
+            raise serializers.ValidationError(
+                "Username must contain at least one letter."
+            )
+        if User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError(
                 "Username already exists."
             )
         return value
+
+    def validate(self, attrs):
+        user = User(
+            username=attrs.get("username"),
+            email=attrs.get("email")
+        )
+        try:
+            validate_password(attrs.get("password"), user=user)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({"password": list(e.messages)})
+        return super().validate(attrs)
 
     def create(self, validated_data):
         return User.objects.create_user(

@@ -23,6 +23,7 @@ from .utils import reorder_positons
 
 from drf_spectacular.utils import extend_schema_view
 
+from django.utils import timezone
 from django.db import transaction
 
 from .docs import (
@@ -51,7 +52,7 @@ from .docs import (
     post=book_create_schema,
 )
 class BookListCreateView(generics.ListCreateAPIView):
-    queryset = Book.objects.all()
+    queryset = Book.objects.filter(is_deleted=False)
 
     serializer_class = BookSerializer
 
@@ -93,11 +94,24 @@ class BookListCreateView(generics.ListCreateAPIView):
     delete=book_delete_schema,
 )
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Book.objects.all()
+    queryset = Book.objects.filter(is_deleted=False)
 
     serializer_class = BookSerializer
 
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.deleted_at = timezone.now()
+        instance.save(update_fields=["is_deleted", "deleted_at"])
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"message": "Book deleted successfully."},
+            status=status.HTTP_200_OK
+        )
 
 @extend_schema_view(
     get=reading_list_list_schema,
@@ -138,7 +152,10 @@ class ReadingListBooksView(APIView):
     def get(self, request, pk):
         reading_list = get_object_or_404(ReadingList, pk=pk, owner=request.user)
 
-        books = ReadingListBook.objects.filter(reading_list=reading_list).order_by("position")
+        books = ReadingListBook.objects.filter(
+            reading_list=reading_list,
+            book__is_deleted=False
+        ).order_by("position")
 
         serializer = ReadingListBookSerializer(books, many=True)
 
@@ -149,7 +166,11 @@ class ReadingListBooksView(APIView):
 
         serializer.is_valid(raise_exception=True)
         reading_list = get_object_or_404(ReadingList, pk=pk, owner=request.user)
-        book = get_object_or_404(Book, pk=serializer.validated_data["book_id"])
+        book = get_object_or_404(
+            Book,
+            pk=serializer.validated_data["book_id"],
+            is_deleted=False
+        )
 
         if ReadingListBook.objects.filter(reading_list=reading_list, book=book).exists():
             return Response(
