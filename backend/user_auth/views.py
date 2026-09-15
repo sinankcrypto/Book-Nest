@@ -174,7 +174,8 @@ class LoginView(APIView):
             value=str(refresh),
             httponly=True,
             secure=settings.SESSION_COOKIE_SECURE,
-            samesite=settings.SESSION_COOKIE_SAMESITE
+            samesite=settings.SESSION_COOKIE_SAMESITE,
+            path='/api/auth/refresh/'
         )
 
         return response
